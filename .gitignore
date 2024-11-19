@@ -1,3 +1,8 @@
+*.csv*
+
+scripts/misc/*.pynb
+*.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
