@@ -24,6 +24,7 @@ def load_config(filename='database.ini', section='postgresql'):
 
 # db
 from sqlalchemy import create_engine, Column, Integer, String, Date, Time, Float, ForeignKey
+import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from sqlalchemy.schema import CreateSchema
@@ -60,7 +61,7 @@ def df_processing_absence(df:pd.DataFrame):
     cols = ["Perimètre juridique", "Année", "Type of contract", "Employee category", "Gender", "Indicator", "Valeur"]
     df = df[cols]
     df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "ABSENCE_INFO", "ABSENCE_HOURS"]
-    df["UID"] = np.arange(0, len(df))
+    df["UID"] = range(len(df))
     return df
     
 class HandicapTable(Base):
@@ -89,11 +90,30 @@ class PromotionTable(Base):
     __table_args__ = {'schema': 'raw'}    
     ENTERPRISE = Column(String, primary_key=True)
     YEAR = Column(String, primary_key=True)
+    INDICATOR = Column(String, primary_key=True)
     CONTRACT_TYPE = Column(String, primary_key=True)
     JOB_TYPE = Column(String, primary_key=True)
+    M3E_CLASS = Column(String, primary_key=True)
     GENDER = Column(String, primary_key=True)
+    REMUNERATION = Column(sqlalchemy.types.Double)
+    PROMOTION = Column(sqlalchemy.types.Double)
+
+def df_processing_promotion(df:pd.DataFrame):
+    "../../data/bilan-social-d-edf-sa-remuneration-et-promotions.csv"
+    df["Valeur"][df["Unit"] == "M€"] = 10**6 *df["Valeur"][df["Unit"] == "M€"]
     
-    
+    df["REMUNERATION"], df["PROMOTION"] = np.nan, np.nan
+
+    mask = df["Unit"] == "number"
+    df["PROMOTION"][mask] = df["Valeur"][mask]
+    df["REMUNERATION"][~mask] = df["Valeur"][~mask]
+
+    cols = ["Perimètre juridique", "Année", "Indicator", "Type of contract", "Employee category", 
+            "M3E classification" ,"Gender", "PROMOTION", "REMUNERATION"]
+    df = df[cols]
+    df.columns = ["ENTERPRISE", "YEAR", "INDICATOR", "CONTRACT_TYPE", 
+                  "JOB_TYPE", "M3E_CLASS", "GENDER", "PROMOTION", "REMUNERATION"]
+    return df
 
 class OtherConditionTable(Base):
     
@@ -115,7 +135,7 @@ def df_processing_othercond(df:pd.DataFrame):
     cols = ["Perimètre juridique", "Année", "Type of contract", "Employee category", "Gender", "Indicator", "Time range", "Valeur"]
     df = df[cols]
     df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "INFO", "TIME_RANGE", "VALUE"]
-    df["UID"] = np.arange(0, len(df))
+    df["UID"] = range(len(df))
     return df
 
 class ExtWorkerTable(Base):
@@ -202,7 +222,7 @@ def df_processing_effectif_repartition(df):
 
     df_1, df_2, df_3 = [df_1[~df_1["AGE_RANGE"].isna()], df_2[~df_2["SENIORITY"].isna()], df_3[~df_3["NATIONALITY"].isna()]]
 
-    df_1["UID"], df_2["UID"], df_3["UID"] = np.arange(0, len(df_1)), np.arange(0, len(df_2)), np.arange(0, len(df_3))
+    df_1["UID"], df_2["UID"], df_3["UID"] = range(len(df_1)), range(len(df_2)), range(len(df_3))
 
     return df_1, df_2, df_3
 
@@ -236,7 +256,7 @@ def populate_db(engine):
                     'bilan-social-d-edf-sa-salaries-en-situation-de-handicap.csv': HandicapTable,
                     'bilan-social-d-edf-sa-autres-conditions-de-travail.csv': OtherConditionTable,
                     'bilan-social-d-edf-sa-travailleurs-exterieurs.csv': ExtWorkerTable,
-                    #'bilan-social-d-edf-sa-remuneration-et-promotions.csv': AbsenceTable,
+                    'bilan-social-d-edf-sa-remuneration-et-promotions.csv': PromotionTable,
                     'bilan-social-d-edf-sa-absenteisme.csv': AbsenceTable,
                     'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv': [Age_RangeTable, SeniorityTable, NationalityTable],
     }
@@ -245,7 +265,7 @@ def populate_db(engine):
                     'data/bilan-social-d-edf-sa-salaries-en-situation-de-handicap.csv': df_processing_handicap,
                     'bilan-social-d-edf-sa-autres-conditions-de-travail.csv': df_processing_othercond,
                     'bilan-social-d-edf-sa-travailleurs-exterieurs.csv': df_processing_extworker,
-                    #'bilan-social-d-edf-sa-remuneration-et-promotions.csv': AbsenceTable,
+                    'bilan-social-d-edf-sa-remuneration-et-promotions.csv': df_processing_promotion,
                     'bilan-social-d-edf-sa-absenteisme.csv': df_processing_absence,
                     'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv': df_processing_effectif_repartition
     }
@@ -274,12 +294,13 @@ def populate_db(engine):
     session.close()
 
 def reset_table(engine):
-    tables = [HandicapTable, OtherConditionTable, ExtWorkerTable, 
-              AbsenceTable, Age_RangeTable, SeniorityTable, NationalityTable,
-    ]
-    for t in tables:
-        t.__table__.drop(engine)
-
+    # tables = [HandicapTable, OtherConditionTable, ExtWorkerTable, 
+    #           AbsenceTable, Age_RangeTable, SeniorityTable, NationalityTable,
+    # ]
+    # for t in tables:
+    #     t.__table__.drop(engine)
+    Base.metadata.drop_all(engine) 
+    
 if __name__ == '__main__':
     config = load_config()
     print(config)
