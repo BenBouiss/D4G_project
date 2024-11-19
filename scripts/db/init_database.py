@@ -1,9 +1,12 @@
 from configparser import ConfigParser
 import os
 import pathlib
-import psycopg2
 import pandas as pd
 import numpy as np
+import database_template
+
+
+Base = database_template.get_base()
 
 def load_config(filename='database.ini', section='postgresql'):
     parser = ConfigParser()
@@ -23,9 +26,9 @@ def load_config(filename='database.ini', section='postgresql'):
     return config
 
 # db
-from sqlalchemy import create_engine, Column, Integer, String, Date, Time, Float, ForeignKey
+
 import sqlalchemy
-from sqlalchemy.ext.declarative import declarative_base
+
 from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from sqlalchemy.schema import CreateSchema
 from typing import List, Optional
@@ -39,22 +42,10 @@ import glob
 # Docker launched with
 # sudo docker run --name postgres-db  -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -v database_mount:/var/lib/postgresql/data -d postgres
 
-Base = declarative_base()
+
 
 # Define the models with foreign keys and relationships
 
-class AbsenceTable(Base):
-    ""
-    __tablename__ = 'absence_table'
-    __table_args__ = {'schema': 'raw'}
-    ENTERPRISE = Column(String)
-    YEAR = Column(String)
-    CONTRACT_TYPE = Column(String)
-    JOB_TYPE = Column(String)
-    GENDER = Column(String)
-    ABSENCE_INFO = Column(String)
-    ABSENCE_HOURS = Column(Integer)
-    UID = Column(Integer, primary_key=True)
 
 def df_processing_absence(df:pd.DataFrame):
     "bilan-social-d-edf-sa-absenteisme.csv"
@@ -63,19 +54,6 @@ def df_processing_absence(df:pd.DataFrame):
     df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "ABSENCE_INFO", "ABSENCE_HOURS"]
     df["UID"] = range(len(df))
     return df
-    
-class HandicapTable(Base):
-    
-    __tablename__ = 'handicap_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String, primary_key=True)
-    YEAR = Column(String, primary_key=True)
-    CONTRACT_TYPE = Column(String, primary_key=True)
-    JOB_TYPE = Column(String, primary_key=True)
-    GENDER = Column(String, primary_key=True)
-    HANDICAP_INFO = Column(String, primary_key=True)
-
-    HANDICAP_NUMBER = Column(Integer)
 
 def df_processing_handicap(df:pd.DataFrame):
     "../../data/bilan-social-d-edf-sa-salaries-en-situation-de-handicap.csv"
@@ -84,19 +62,7 @@ def df_processing_handicap(df:pd.DataFrame):
     df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "HANDICAP_INFO", "HANDICAP_NUMBER"]
     return df
 
-class PromotionTable(Base):
-    
-    __tablename__ = 'promotion_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String, primary_key=True)
-    YEAR = Column(String, primary_key=True)
-    INDICATOR = Column(String, primary_key=True)
-    CONTRACT_TYPE = Column(String, primary_key=True)
-    JOB_TYPE = Column(String, primary_key=True)
-    M3E_CLASS = Column(String, primary_key=True)
-    GENDER = Column(String, primary_key=True)
-    REMUNERATION = Column(sqlalchemy.types.Double)
-    PROMOTION = Column(sqlalchemy.types.Double)
+
 
 def df_processing_promotion(df:pd.DataFrame):
     "../../data/bilan-social-d-edf-sa-remuneration-et-promotions.csv"
@@ -115,21 +81,6 @@ def df_processing_promotion(df:pd.DataFrame):
                   "JOB_TYPE", "M3E_CLASS", "GENDER", "PROMOTION", "REMUNERATION"]
     return df
 
-class OtherConditionTable(Base):
-    
-    __tablename__ = 'other_condition_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String)
-    YEAR = Column(String)
-    CONTRACT_TYPE = Column(String)
-    JOB_TYPE = Column(String)
-    GENDER = Column(String)
-    
-    INFO = Column(String)
-    TIME_RANGE = Column(String)
-    VALUE = Column(Integer)
-    UID = Column(Integer, primary_key = True)
-
 def df_processing_othercond(df:pd.DataFrame):
     "bilan-social-d-edf-sa-autres-conditions-de-travail.csv"
     cols = ["Perimètre juridique", "Année", "Type of contract", "Employee category", "Gender", "Indicator", "Time range", "Valeur"]
@@ -138,71 +89,12 @@ def df_processing_othercond(df:pd.DataFrame):
     df["UID"] = range(len(df))
     return df
 
-class ExtWorkerTable(Base):
-    
-    __tablename__ = 'exterior_worker_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String, primary_key=True)
-    YEAR = Column(String, primary_key=True)
-    JOB_TYPE = Column(String, primary_key=True)
-    GENDER = Column(String, primary_key=True)
-    INFO = Column(String, primary_key = True)
-    VALUE = Column(Integer)
-
-
 def df_processing_extworker(df:pd.DataFrame):
     'bilan-social-d-edf-sa-travailleurs-exterieurs.csv'
     cols = ["Perimètre juridique", "Année", "Employee category", "Gender", "Indicator", "Valeur"]
     df = df[cols]
     df.columns = ["ENTERPRISE", "YEAR", "JOB_TYPE", "GENDER", "INFO", "VALUE"]
     return df
-
-
-
-
-class Age_RangeTable(Base):
-    
-    __tablename__ = 'age_range_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String)
-    YEAR = Column(String)
-    CONTRACT_TYPE = Column(String)
-    JOB_TYPE = Column(String)
-    GENDER = Column(String)
-    INFO = Column(String)
-    AGE_RANGE = Column(String)
-    VALUE = Column(Integer)
-    UID = Column(Integer, primary_key = True)
-
-
-class SeniorityTable(Base):
-    
-    __tablename__ = 'Seniority_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String)
-    YEAR = Column(String)
-    CONTRACT_TYPE = Column(String)
-    JOB_TYPE = Column(String)
-    GENDER = Column(String)
-    INFO = Column(String)
-    SENIORITY = Column(String)
-    VALUE = Column(Integer)
-    UID = Column(Integer, primary_key = True)
-
-
-class NationalityTable(Base):
-    
-    __tablename__ = 'Nationality_table'
-    __table_args__ = {'schema': 'raw'}    
-    ENTERPRISE = Column(String)
-    YEAR = Column(String)
-    CONTRACT_TYPE = Column(String)
-    JOB_TYPE = Column(String)
-    GENDER = Column(String)
-    INFO = Column(String)
-    NATIONALITY = Column(String)
-    VALUE = Column(Integer)
-    UID = Column(Integer, primary_key = True)
 
 def df_processing_effectif_repartition(df):
     'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv'
@@ -226,15 +118,12 @@ def df_processing_effectif_repartition(df):
 
     return df_1, df_2, df_3
 
-def populate_db(engine):
+def populate_db(engine, empty = False):
 
     path_to_data_folder = "data"
     list_of_csv_path = glob.glob(path_to_data_folder + "/*.csv")
     # Extract the filenames from the paths
     csv_file_names = [os.path.basename(file) for file in list_of_csv_path]
-    # Set the locale to the default locale (or specify a different one if needed)
-    locale.setlocale(locale.LC_COLLATE, locale.getdefaultlocale())
-    csv_file_names.sort(key=locale.strxfrm)
 
     # Define the database connection
 
@@ -246,6 +135,9 @@ def populate_db(engine):
     # Create all tables
     Base.metadata.create_all(engine)
 
+    if empty:
+        return
+
     # Load data from CSV files and insert into the database
 
     Session = sessionmaker(bind=engine)
@@ -253,12 +145,13 @@ def populate_db(engine):
 
     # Define model mapping
     model_mapping = {
-                    'bilan-social-d-edf-sa-salaries-en-situation-de-handicap.csv': HandicapTable,
-                    'bilan-social-d-edf-sa-autres-conditions-de-travail.csv': OtherConditionTable,
-                    'bilan-social-d-edf-sa-travailleurs-exterieurs.csv': ExtWorkerTable,
-                    'bilan-social-d-edf-sa-remuneration-et-promotions.csv': PromotionTable,
-                    'bilan-social-d-edf-sa-absenteisme.csv': AbsenceTable,
-                    'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv': [Age_RangeTable, SeniorityTable, NationalityTable],
+                    'bilan-social-d-edf-sa-salaries-en-situation-de-handicap.csv': database_template.HandicapTable,
+                    'bilan-social-d-edf-sa-autres-conditions-de-travail.csv': database_template.OtherConditionTable,
+                    'bilan-social-d-edf-sa-travailleurs-exterieurs.csv': database_template.ExtWorkerTable,
+                    'bilan-social-d-edf-sa-remuneration-et-promotions.csv': database_template.PromotionTable,
+                    'bilan-social-d-edf-sa-absenteisme.csv': database_template.AbsenceTable,
+                    'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv': 
+                    [database_template.Age_RangeTable, database_template.SeniorityTable, database_template.NationalityTable],
     }
 
     process_mapping = {
@@ -294,18 +187,13 @@ def populate_db(engine):
     session.close()
 
 def reset_table(engine):
-    # tables = [HandicapTable, OtherConditionTable, ExtWorkerTable, 
-    #           AbsenceTable, Age_RangeTable, SeniorityTable, NationalityTable,
-    # ]
-    # for t in tables:
-    #     t.__table__.drop(engine)
     Base.metadata.drop_all(engine) 
     
 if __name__ == '__main__':
     config = load_config()
     print(config)
     DATABASE_URI = f'postgresql+psycopg2://{config.get("user")}:{config.get("password")}@{config.get("host")}:{config.get("port")}/{config.get("database")}'
-    engine = create_engine(DATABASE_URI)
+    engine = sqlalchemy.create_engine(DATABASE_URI)
     reset_table(engine)
-    populate_db(engine)
+    populate_db(engine, empty=False)
     # psycopg2.connect(**config)
