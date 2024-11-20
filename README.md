@@ -34,3 +34,18 @@ Superset requires node version >= 16.20
 ```bash
 sudo apt install nodejs
 ```
+
+Clone the superset git repo outside of this repo
+
+```bash
+git clone --depth=1 https://github.com/apache/superset.git
+```
+
+Then launch the superset instance by moving to the created repo building the docker compose
+
+```bash
+sudo docker compose up
+```
+
+Default address and ports: http://127.0.0.1:8088
+With Username and password both = "admin"
