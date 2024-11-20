@@ -28,46 +28,80 @@ data = load_data(selected_table)
 
 # Check if data is loaded
 if not data.empty:
+   # Filters for Nationality_table
+    if selected_table == "Nationality_table": 
     # Sidebar filters
-    selected_company = st.sidebar.multiselect(
-        "Select Company",
-        options=data["ENTERPRISE"].unique(),
-        default=data["ENTERPRISE"].unique()
-    )
+        selected_company = st.sidebar.multiselect(
+            "Select Company",
+            options=data["ENTERPRISE"].unique(),
+            default=data["ENTERPRISE"].unique()
+        )
 
-    selected_gender = st.sidebar.multiselect(
-        "Select Gender",
-        options=data["GENDER"].unique(),
-        default=data["GENDER"].unique()
-    )
+        selected_gender = st.sidebar.multiselect(
+            "Select Gender",
+            options=data["GENDER"].unique(),
+            default=data["GENDER"].unique()
+        )
 
-    selected_contract_type = st.sidebar.multiselect(
-        "Select Contract Type",
-        options=data["CONTRACT_TYPE"].unique(),
-        default=data["CONTRACT_TYPE"].unique()
-    )
+        selected_contract_type = st.sidebar.multiselect(
+            "Select Contract Type",
+            options=data["CONTRACT_TYPE"].unique(),
+            default=data["CONTRACT_TYPE"].unique()
+        )
 
-    selected_year = st.sidebar.multiselect(
-        "Select Year",
-        options=data["YEAR"].unique(),
-        default=data["YEAR"].unique()
-    )
+        selected_year = st.sidebar.multiselect(
+            "Select Year",
+            options=data["YEAR"].unique(),
+            default=data["YEAR"].unique()
+        )
 
-    selected_nationality = st.sidebar.multiselect(
-        "Select Nationality",
-        options=data["NATIONALITY"].unique(),
-        default=data["NATIONALITY"].unique()
-    )
+        selected_nationality = st.sidebar.multiselect(
+            "Select Nationality",
+            options=data["NATIONALITY"].unique(),
+            default=data["NATIONALITY"].unique()
+        )
 
-    # Apply filters
-    filtered_data = data[
-        (data["ENTERPRISE"].isin(selected_company)) &
-        (data["GENDER"].isin(selected_gender)) &
-        (data["CONTRACT_TYPE"].isin(selected_contract_type)) &
-        (data["NATIONALITY"].isin(selected_nationality)) &
-        (data["YEAR"].isin(selected_year))
-    ]
-
+        # Apply filters
+        filtered_data = data[
+            (data["ENTERPRISE"].isin(selected_company)) &
+            (data["GENDER"].isin(selected_gender)) &
+            (data["CONTRACT_TYPE"].isin(selected_contract_type)) &
+            (data["NATIONALITY"].isin(selected_nationality)) &
+            (data["YEAR"].isin(selected_year))
+        ]
+    # Filters for absence_table
+    elif selected_table == "absence_table":
+         selected_company = st.sidebar.multiselect(
+             "Select Company",
+             options=data["ENTERPRISE"].unique(),
+             default=data["ENTERPRISE"].unique()
+         )
+         selected_gender = st.sidebar.multiselect(
+             "Select Gender",
+             options=data["GENDER"].unique(),
+             default=data["GENDER"].unique()
+         )
+         selected_absence_type = st.sidebar.multiselect(
+             "Select Absence Type",
+             options=data["ABSENCE_INFO"].unique(),
+             default=data["ABSENCE_INFO"].unique()
+         )
+         selected_year = st.sidebar.multiselect(
+             "Select Year",
+             options=data["YEAR"].unique(),
+             default=data["YEAR"].unique()
+         )
+         
+         # Apply filters
+         filtered_data = data[
+             (data["ENTERPRISE"].isin(selected_company)) &
+             (data["GENDER"].isin(selected_gender)) &
+             (data["ABSENCE_INFO"].isin(selected_absence_type)) &
+             (data["YEAR"].isin(selected_year))
+         ]
+    else:
+        st.error(f"No data available for {selected_table}.")
+ 
     # Check if filtered data is empty
     if filtered_data.empty:
         st.warning("No data available for the selected filters.")
@@ -113,6 +147,64 @@ else:
 
 
 
+# Display available columns to debug
+    st.write("Available Columns in the Table:", data.columns)
+
+
+
+
+
+# Display the first few rows and columns of the table
+    if not data.empty:
+        st.write("Sample Data from Absence Table:", data.head())
+        st.write("Available Columns:", data.columns)
+    else:
+        st.error("No data available in the selected table.")
+
+
+
+
+
+    # # 4. Absence Analysis / ניתוח היעדרויות
+    # if "ABSENCES" in filtered_data.columns:
+    #     st.header("Absence Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
+    #     # Calculate average absences by category and gender
+    #     # חישוב ממוצע ההיעדרויות לפי קטגוריה ומגדר
+    #     absence_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["ABSENCES"].mean().reset_index()
+    #     # Create a bar chart to compare absences
+    #     # יצירת גרף עמודות להשוואת היעדרויות
+    #     fig_absences = px.bar(
+    #         absence_data,
+    #         x="JOB_TYPE",
+    #         y="ABSENCES",
+    #         color="GENDER",
+    #         barmode="group",
+    #         title="Average Absences by Gender and Category",
+    #         labels={"ABSENCES": "Average Absences", "JOB_TYPE": "Category"}
+    #     )
+    #     st.plotly_chart(fig_absences)
+
+# # 2. Promotion Analysis / ניתוח קידומים
+    # if "PROMOTIONS" in filtered_data.columns:
+    #     st.header("Promotion Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
+    #     # Calculate the number of promotions by category and gender
+    #     # חישוב כמות הקידומים לפי קטגוריה ומגדר
+    #     promotion_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["PROMOTIONS"].sum().reset_index()
+    #     # Create a bar chart to compare promotions
+    #     # יצירת גרף עמודות להשוואת קידומים
+    #     fig_promotions = px.bar(
+    #         promotion_data,
+    #         x="JOB_TYPE",
+    #         y="PROMOTIONS",
+    #         color="GENDER",
+    #         barmode="group",
+    #         title="Promotion Rates by Gender and Category",
+    #         labels={"PROMOTIONS": "Total Promotions", "JOB_TYPE": "Category"}
+    #     )
+    #     st.plotly_chart(fig_promotions)
+
+
+
 
     # if "SALARY" in filtered_data.columns:
     #     st.header("Salary Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
@@ -135,25 +227,7 @@ else:
 
 
 
-    # # 2. Promotion Analysis / ניתוח קידומים
-    # if "PROMOTIONS" in filtered_data.columns:
-    #     st.header("Promotion Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
-    #     # Calculate the number of promotions by category and gender
-    #     # חישוב כמות הקידומים לפי קטגוריה ומגדר
-    #     promotion_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["PROMOTIONS"].sum().reset_index()
-    #     # Create a bar chart to compare promotions
-    #     # יצירת גרף עמודות להשוואת קידומים
-    #     fig_promotions = px.bar(
-    #         promotion_data,
-    #         x="JOB_TYPE",
-    #         y="PROMOTIONS",
-    #         color="GENDER",
-    #         barmode="group",
-    #         title="Promotion Rates by Gender and Category",
-    #         labels={"PROMOTIONS": "Total Promotions", "JOB_TYPE": "Category"}
-    #     )
-    #     st.plotly_chart(fig_promotions)
-
+    
 
 
 
@@ -178,25 +252,6 @@ else:
 
 
 
-
-    # # 4. Absence Analysis / ניתוח היעדרויות
-    # if "ABSENCES" in filtered_data.columns:
-    #     st.header("Absence Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
-    #     # Calculate average absences by category and gender
-    #     # חישוב ממוצע ההיעדרויות לפי קטגוריה ומגדר
-    #     absence_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["ABSENCES"].mean().reset_index()
-    #     # Create a bar chart to compare absences
-    #     # יצירת גרף עמודות להשוואת היעדרויות
-    #     fig_absences = px.bar(
-    #         absence_data,
-    #         x="JOB_TYPE",
-    #         y="ABSENCES",
-    #         color="GENDER",
-    #         barmode="group",
-    #         title="Average Absences by Gender and Category",
-    #         labels={"ABSENCES": "Average Absences", "JOB_TYPE": "Category"}
-    #     )
-    #     st.plotly_chart(fig_absences)
 
 
 

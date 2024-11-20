@@ -195,6 +195,6 @@ if __name__ == '__main__':
     print(config)
     DATABASE_URI = f'postgresql+psycopg2://{config.get("user")}:{config.get("password")}@{config.get("host")}:{config.get("port")}/{config.get("database")}'
     engine = sqlalchemy.create_engine(DATABASE_URI)
-    #reset_table(engine)
+    reset_table(engine)
     populate_db(engine, empty=False)
     # psycopg2.connect(**config)
