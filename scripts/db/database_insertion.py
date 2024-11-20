@@ -29,9 +29,9 @@ class TableInserter(object):
 
         self.db_insert = DatabaseInserter(self.db_object)
 
-    def process_data(data:pd.DataFrame):
+    def process_data(self, data:pd.DataFrame):
         """
-        To be overloaded
+        To be overloaded if needed
         """
         return data
 
@@ -41,14 +41,16 @@ class TableInserter(object):
         
         session.commit()
 
-    def insert_data(self, data:pd.dataFrame | dict, session):
+    def insert_data(self, data:pd.DataFrame | dict, session):
         
         if isinstance(data, dict):
-            data = pd.DataFrame(data.copy()) 
-        
+            if isinstance(data.get(list(data.keys())[0]), list):
+                data = pd.DataFrame(data.copy()) 
+            else:
+                data = pd.DataFrame(data.copy(), index = [0])
         
         if isinstance(data, pd.DataFrame):
-            if len(data.columns) < self.desired_variables:
+            if len(data.columns) < len(self.desired_variables):
                 raise ValueError("Not enough var found")
 
             data = self.process_data(data)
