@@ -23,3 +23,14 @@ Running of the code(exemple):
 ```bash
 uv run scripts/main.py
 ```
+
+
+------------------------
+
+Using superset
+
+Superset requires node version >= 16.20 
+
+```bash
+sudo apt install nodejs
+```
