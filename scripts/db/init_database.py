@@ -59,7 +59,7 @@ def df_processing_handicap(df:pd.DataFrame):
     "../../data/bilan-social-d-edf-sa-salaries-en-situation-de-handicap.csv"
     cols = ["Perimètre juridique", "Année", "Type of contract", "Employee category", "Gender", "Indicator", "Valeur"]
     df = df[cols]
-    df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "HANDICAP_INFO", "HANDICAP_NUMBER"]
+    df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "HANDICAP_INFO", "NBR_EMPLOYEE"]
     return df
 
 
@@ -78,14 +78,14 @@ def df_processing_promotion(df:pd.DataFrame):
             "M3E classification" ,"Gender", "PROMOTION", "REMUNERATION"]
     df = df[cols]
     df.columns = ["ENTERPRISE", "YEAR", "INDICATOR", "CONTRACT_TYPE", 
-                  "JOB_TYPE", "M3E_CLASS", "GENDER", "PROMOTION", "REMUNERATION"]
+                  "JOB_TYPE", "M3E_CLASS", "GENDER", "NBR_PROMOTION", "REMUNERATION"]
     return df
 
 def df_processing_othercond(df:pd.DataFrame):
     "bilan-social-d-edf-sa-autres-conditions-de-travail.csv"
     cols = ["Perimètre juridique", "Année", "Type of contract", "Employee category", "Gender", "Indicator", "Time range", "Valeur"]
     df = df[cols]
-    df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "INFO", "TIME_RANGE", "VALUE"]
+    df.columns = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "INFO", "TIME_RANGE", "NBR_EMPLOYEE"]
     df["UID"] = range(len(df))
     return df
 
@@ -93,20 +93,21 @@ def df_processing_extworker(df:pd.DataFrame):
     'bilan-social-d-edf-sa-travailleurs-exterieurs.csv'
     cols = ["Perimètre juridique", "Année", "Employee category", "Gender", "Indicator", "Valeur"]
     df = df[cols]
-    df.columns = ["ENTERPRISE", "YEAR", "JOB_TYPE", "GENDER", "INFO", "VALUE"]
+    df.columns = ["ENTERPRISE", "YEAR", "JOB_TYPE", "GENDER", "INFO", "NBR_EMPLOYEE"]
     return df
 
 def df_processing_effectif_repartition(df):
     'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv'
+    
     common_cols = ["Perimètre juridique", "Année", "Type of contract", "Employee category", "Gender", "Indicator"]
     common_final_cols = ["ENTERPRISE", "YEAR", "CONTRACT_TYPE", "JOB_TYPE", "GENDER", "INFO"]
 
     df_age_range_cols = common_cols + ['Age bracket', 'Valeur']
-    final_cols_age_range = common_final_cols + ["AGE_RANGE", "VALUE"]
+    final_cols_age_range = common_final_cols + ["AGE_RANGE", "NBR_EMPLOYEE"]
     df_seniority_cols = common_cols + ['Seniority', 'Valeur']
-    final_cols_seniority = common_final_cols + ["SENIORITY", "VALUE"]
+    final_cols_seniority = common_final_cols + ["SENIORITY", "NBR_EMPLOYEE"]
     df_Nationality_cols = common_cols + ['Nationality', 'Valeur']
-    final_cols_Nationality = common_final_cols + ["NATIONALITY", "VALUE"]
+    final_cols_Nationality = common_final_cols + ["NATIONALITY", "NBR_EMPLOYEE"]
 
     df_1, df_2, df_3 = [df[df_age_range_cols], df[df_seniority_cols], df[df_Nationality_cols]]
 
@@ -151,7 +152,7 @@ def populate_db(engine, empty = False):
                     'bilan-social-d-edf-sa-remuneration-et-promotions.csv': database_template.PromotionTable,
                     'bilan-social-d-edf-sa-absenteisme.csv': database_template.AbsenceTable,
                     'bilan-social-d-edf-sa-effectifs-et-repartition-par-age-statut-et-sexe.csv': 
-                    [database_template.Age_RangeTable, database_template.SeniorityTable, database_template.NationalityTable],
+                    [database_template.AgeRangeTable, database_template.SeniorityTable, database_template.NationalityTable],
     }
 
     process_mapping = {

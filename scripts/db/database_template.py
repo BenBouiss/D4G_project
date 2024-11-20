@@ -32,7 +32,7 @@ class HandicapTable(Base):
     GENDER = Column(String, primary_key=True)
     HANDICAP_INFO = Column(String, primary_key=True)
 
-    HANDICAP_NUMBER = Column(Integer)
+    NBR_EMPLOYEE = Column(Integer)
 
 class PromotionTable(Base):
     
@@ -46,7 +46,7 @@ class PromotionTable(Base):
     M3E_CLASS = Column(String, primary_key=True)
     GENDER = Column(String, primary_key=True)
     REMUNERATION = Column(Double)
-    PROMOTION = Column(Double)
+    NBR_PROMOTION = Column(Double)
 
 class OtherConditionTable(Base):
     
@@ -60,7 +60,7 @@ class OtherConditionTable(Base):
     
     INFO = Column(String)
     TIME_RANGE = Column(String)
-    VALUE = Column(Integer)
+    NBR_EMPLOYEE = Column(Integer)
     UID = Column(Integer, primary_key = True)
 
 class ExtWorkerTable(Base):
@@ -72,9 +72,9 @@ class ExtWorkerTable(Base):
     JOB_TYPE = Column(String, primary_key=True)
     GENDER = Column(String, primary_key=True)
     INFO = Column(String, primary_key = True)
-    VALUE = Column(Integer)
+    NBR_EMPLOYEE = Column(Integer)
 
-class Age_RangeTable(Base):
+class AgeRangeTable(Base):
     
     __tablename__ = 'age_range_table'
     __table_args__ = {'schema': 'raw'}    
@@ -85,7 +85,7 @@ class Age_RangeTable(Base):
     GENDER = Column(String)
     INFO = Column(String)
     AGE_RANGE = Column(String)
-    VALUE = Column(Integer)
+    NBR_EMPLOYEE = Column(Integer)
     UID = Column(Integer, primary_key = True)
 
 
@@ -100,7 +100,7 @@ class SeniorityTable(Base):
     GENDER = Column(String)
     INFO = Column(String)
     SENIORITY = Column(String)
-    VALUE = Column(Integer)
+    NBR_EMPLOYEE = Column(Integer)
     UID = Column(Integer, primary_key = True)
 
 
@@ -115,5 +115,5 @@ class NationalityTable(Base):
     GENDER = Column(String)
     INFO = Column(String)
     NATIONALITY = Column(String)
-    VALUE = Column(Integer)
+    NBR_EMPLOYEE = Column(Integer)
     UID = Column(Integer, primary_key = True)
