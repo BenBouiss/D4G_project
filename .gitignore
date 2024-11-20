@@ -6,6 +6,10 @@ scripts/misc/*.pynb
 uv.lock
 *.pdf
 
+<<<<<<< HEAD
+=======
+trash/
+>>>>>>> fd575e6 (small changes)
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
