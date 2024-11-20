@@ -44,7 +44,7 @@ git clone --depth=1 https://github.com/apache/superset.git
 Then launch the superset instance by moving to the created repo building the docker compose
 
 ```bash
-sudo docker compose up
+sudo docker compose -f docker-compose-image-tag.yml up
 ```
 
 Default address and ports: http://127.0.0.1:8088
