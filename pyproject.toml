@@ -13,9 +13,6 @@ dependencies = [
     "pandas>=2.2.3",
     "plotly>=5.24.1",
     "psycopg2-binary>=2.9.10",
-<<<<<<< HEAD
     "sqlalchemy>=2.0.36",
-=======
     "streamlit>=1.40.1",
->>>>>>> master
 ]
