@@ -10,3 +10,9 @@ services:
       POSTGRES_USER: postgres 
       POSTGRES_PASSWORD: BenBouiss 
       POSTGRES_DB: D4G
+  unstructured:
+    image: downloads.unstructured.io/unstructured-io/unstructured:latest
+    container_name: unstructured
+    restart: always
+    stdin_open: true
+    tty: true
