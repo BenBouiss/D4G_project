@@ -1,4 +1,3 @@
-*.csv*
 
 scripts/misc/*.pynb
 *.lock
