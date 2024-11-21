@@ -1,18 +1,17 @@
 services:
   myPostgresDb:
     image: postgres
-    restart: always
     ports:
-      - "5455:5432"
+      - "5453:5432"
     expose:
       - 5432
     environment:
       POSTGRES_USER: postgres 
       POSTGRES_PASSWORD: BenBouiss 
       POSTGRES_DB: D4G
-  unstructured:
-    image: downloads.unstructured.io/unstructured-io/unstructured:latest
-    container_name: unstructured
-    restart: always
-    stdin_open: true
-    tty: true
+  #unstructured:
+    #image: downloads.unstructured.io/unstructured-io/unstructured:latest
+    #container_name: unstructured
+    #restart: always
+    #stdin_open: true
+    #tty: true

@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 # Function to load data from PostgreSQL
 def load_data(table_name):
-    db_url = "postgresql://postgres:BenBouiss@localhost:5455/D4G"
+    db_url = "postgresql://postgres:BenBouiss@localhost:5453/D4G"
     engine = create_engine(db_url)
     query = f'SELECT * FROM "raw"."{table_name}"'
     try:
@@ -18,7 +18,7 @@ def load_data(table_name):
 # Sidebar filters for table selection and filtering
 st.sidebar.title("Filters")
 table_options = [
-    "promotion_table", "absence_table", "Nationality_table", "Seniority_table",
+    "promotion_table", "absence_table", "nationality_table", "seniority_table",
     "age_range_table", "exterior_worker_table", "handicap_table", "other_condition_table"
 ]
 AVAILABLE_TABLES = [
@@ -26,9 +26,10 @@ AVAILABLE_TABLES = [
 ]
 NAME_TO_TABLENAME = {
     "Absence": "absence_table", 
-    "Nationality": "Nationality_table"
+    "Nationality": "nationality_table"
 }
 selected_name = st.sidebar.selectbox("Select Table for Analysis", AVAILABLE_TABLES)
+
 selected_table = NAME_TO_TABLENAME.get(selected_name)
 # Load data from the selected table
 data = load_data(selected_table)
@@ -118,7 +119,7 @@ def process_event_absence(df):
 # Check if data is loaded
 if not data.empty:
    # Filters for Nationality_table
-    if selected_table == "Nationality_table": 
+    if selected_name == "Nationality": 
     # Sidebar filters
         number_col = "NBR_EMPLOYEE"
         selected_company = st.sidebar.multiselect(
@@ -161,7 +162,7 @@ if not data.empty:
         ]
         process_event_nationality(df=filtered_data)
     # Filters for absence_table
-    elif selected_table == "absence_table":
+    elif selected_name == "Absence":
          number_col = "ABSENCE_HOURS"
          selected_company = st.sidebar.multiselect(
              "Select Company",

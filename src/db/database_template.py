@@ -91,7 +91,7 @@ class AgeRangeTable(Base):
 
 class SeniorityTable(Base):
     
-    __tablename__ = 'Seniority_table'
+    __tablename__ = 'seniority_table'
     __table_args__ = {'schema': 'raw'}    
     ENTERPRISE = Column(String)
     YEAR = Column(String)
@@ -106,7 +106,7 @@ class SeniorityTable(Base):
 
 class NationalityTable(Base):
     
-    __tablename__ = 'Nationality_table'
+    __tablename__ = 'nationality_table'
     __table_args__ = {'schema': 'raw'}    
     ENTERPRISE = Column(String)
     YEAR = Column(String)
