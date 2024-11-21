@@ -87,7 +87,7 @@ With Username and password both = "admin"
 
 Project structure
 
-
+```md
 data:
 └── Folder containing csv used by src.db and pdf files to be used by src.data_extractor
 
@@ -100,7 +100,7 @@ src:
 │ 
 └── db:
     └── Contains script to initialize the database and add informations to it
-
+```
 
     
 
