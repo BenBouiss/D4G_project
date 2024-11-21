@@ -1,10 +1,6 @@
-*.csv*
 
 scripts/misc/*.pynb
 *.lock
-
-uv.lock
-*.pdf
 
 trash/
 
