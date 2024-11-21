@@ -92,7 +92,7 @@ data
 └── Folder containing csv used by src.db and pdf files to be used by src.data_extractor
 
 src
-├── data_extractor:
+├── data_extractor
 │   └── Include scripts to extract tables from a given pdf file
 │     
 ├── data_viz
