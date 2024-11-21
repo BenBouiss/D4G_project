@@ -13,6 +13,8 @@ And restart the console afterward
 
 Installation of the python dependencies
 ```bash
+uv venv
+
 uv pip install -r pyproject.toml
 ```
 
