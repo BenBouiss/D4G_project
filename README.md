@@ -89,7 +89,8 @@ Project structure
 
 
 data:
-    Folder containing csv used by src.db and pdf files to be used by src.data_extractor
+ 
+   Folder containing csv used by src.db and pdf files to be used by src.data_extractor
 
 src:
 
