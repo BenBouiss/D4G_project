@@ -40,20 +40,20 @@ uv run scripts/db/init_database.py
 
 ------------------------
 
-Using the Streamlite dashbord
+Using the Streamlit dashbord
 
 ```bash
 streamlit run scripts/data_viz/dashbord_skript.py
 ```
 
-Note this requires the UV environnement to be activated to do so run
+**_NOTE:_**: this requires the UV environnement to be activated to do so run
 
 
 ```bash
 source activate .venv/bin/activate
 ```
 
-
+The postgresql database must also be running in order for the streamlit dashboard to work
 
 
 ------------------------
