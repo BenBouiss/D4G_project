@@ -22,11 +22,12 @@ table_options = [
     "age_range_table", "exterior_worker_table", "handicap_table", "other_condition_table"
 ]
 AVAILABLE_TABLES = [
-    "Absence", "Nationality"
+    "Absence", "Nationality", "Promotion"
 ]
 NAME_TO_TABLENAME = {
     "Absence": "absence_table", 
-    "Nationality": "nationality_table"
+    "Nationality": "nationality_table",
+    "Promotion": "promotion_table"
 }
 selected_name = st.sidebar.selectbox("Select Table for Analysis", AVAILABLE_TABLES)
 
@@ -83,8 +84,8 @@ def process_event_absence(df):
         y=number_col,
         color="GENDER",
         barmode="group",
-        title="Total Employees by Nationality and Gender",
-        labels={number_col: "Number of Employees", "JOB_TYPE": "JOB_TYPE", "GENDER": "Gender"}
+        title="Absence hours by job type and Gender",
+        labels={number_col: "Absence hours", "JOB_TYPE": "JOB_TYPE", "GENDER": "Gender"}
     )
 
     # Display the chart
@@ -99,22 +100,83 @@ def process_event_absence(df):
         x="YEAR",
         y=number_col,
         color="GENDER",
-        title="Yearly Trend of Employees by Nationality",
-        labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
+        title="Yearly trend of absence hours by gender",
+        labels={number_col: "Absence hours", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
     )
     
     # Display the chart
     st.plotly_chart(fig_yearly_nationality)
+    
+    # normalized bu number of employee
+    df_nbr_employee = load_data("age_range_table")
+    df_nbr_employee = df_nbr_employee.groupby(["YEAR", "GENDER"])["NBR_EMPLOYEE"].sum()
+    
+    yearly_absence_trend_normed = (df.groupby(["YEAR", "GENDER"])[number_col].sum() / df_nbr_employee).reset_index()
 
-    # fig_yearly_per_job_nationality = px.line(
-    #     yearly_absence_trend,
-    #     x="YEAR",
-    #     y=number_col,
-    #     color="GENDER",
-    #     title="Yearly Trend of Employees by Nationality",
-    #     labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
-    # )
-    # st.plotly_chart(fig_yearly_per_job_nationality)
+    
+    fig_yearly_per_job_nationality_normed = px.line(
+        yearly_absence_trend_normed,
+        x="YEAR",
+        y=0,
+        color="GENDER",
+        title="Yearly normalized trend of absence hours by gender ()",
+        labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE", "0": "Absence hour per\nemployee on average (Hr/employee)"}
+    )
+    st.plotly_chart(fig_yearly_per_job_nationality_normed)
+
+def process_event_promotion(df):
+        # Group by nationality and gender, then sum the values
+    number_col = "NBR_PROMOTION"
+    nationality_gender_totals = df.groupby(["JOB_TYPE", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a grouped bar chart to compare genders
+    fig_nationality_gender = px.bar(
+        nationality_gender_totals,
+        x="JOB_TYPE",
+        y=number_col,
+        color="GENDER",
+        barmode="group",
+        title="Promotion by job type and Gender",
+        labels={number_col: "Promotion", "JOB_TYPE": "JOB_TYPE", "GENDER": "Gender"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_nationality_gender)
+
+    # Group by year and nationality, then sum the values
+    yearly_absence_trend = df.groupby(["YEAR", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a line chart to show the trend over years
+    fig_yearly_nationality = px.line(
+        yearly_absence_trend,
+        x="YEAR",
+        y=number_col,
+        color="GENDER",
+        title="Yearly trend of promotion by gender",
+        labels={number_col: "Promotion", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
+    )
+    
+    # Display the chart
+    st.plotly_chart(fig_yearly_nationality)
+    
+    # normalized bu number of employee
+    df_nbr_employee = load_data("age_range_table")
+    df_nbr_employee = df_nbr_employee.groupby(["YEAR", "GENDER"])["NBR_EMPLOYEE"].sum()
+    
+    yearly_absence_trend_normed = (df.groupby(["YEAR", "GENDER"])[number_col].sum() / df_nbr_employee).reset_index()
+
+    
+    
+    fig_yearly_per_job_nationality_normed = px.line(
+        yearly_absence_trend_normed,
+        x="YEAR",
+        y=0,
+        color="GENDER",
+        title="Yearly normalized trend of promotion by gender",
+        labels={number_col: "Promotion", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE", "0": "Promotion per\nemployee on average (promotion/employee)"}
+    )
+    st.plotly_chart(fig_yearly_per_job_nationality_normed)
+
 
 # Check if data is loaded
 if not data.empty:
@@ -193,6 +255,42 @@ if not data.empty:
              (data["YEAR"].isin(selected_year))
          ]
          process_event_absence(filtered_data)
+
+    elif selected_name == "Promotion":
+         number_col = "NBR_PROMOTION"
+         data = data[~ data[number_col].isna()]
+         
+         selected_company = st.sidebar.multiselect(
+             "Select Company",
+             options=data["ENTERPRISE"].unique(),
+             default=data["ENTERPRISE"].unique()
+         )
+         selected_gender = st.sidebar.multiselect(
+             "Select Gender",
+             options=data["GENDER"].unique(),
+             default=data["GENDER"].unique()
+         )
+         selected_year = st.sidebar.multiselect(
+             "Select Year",
+             options=data["YEAR"].unique(),
+             default=data["YEAR"].unique()
+         )
+
+         selected_class = st.sidebar.multiselect(
+             "Select class",
+             options=data["M3E_CLASS"].unique(),
+             default=data["M3E_CLASS"].unique()
+         )
+         # Apply filters
+         filtered_data = data[
+             (data["ENTERPRISE"].isin(selected_company)) &
+             (data["GENDER"].isin(selected_gender)) &
+             (data["YEAR"].isin(selected_year)) &
+             (data["M3E_CLASS"].isin(selected_class))
+         ]
+         
+         process_event_promotion(filtered_data)
+    
     else:
         st.error(f"No data available for {selected_table}.")
  
