@@ -37,7 +37,7 @@ sudo docker compose up
 Initialising the DB with the data present in the data folder
 
 ```bash
-uv run scripts/db/init_database.py
+uv run src/db/init_database.py
 ```
 
 ------------------------
