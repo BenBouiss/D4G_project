@@ -23,7 +23,7 @@ uv pip install -r pyproject.toml
 Running of the code(exemple):
 
 ```bash
-uv run scripts/main.py
+uv run src/main.py
 ```
 
 ------------------------
@@ -45,7 +45,7 @@ uv run scripts/db/init_database.py
 Using the Streamlit dashbord
 
 ```bash
-streamlit run scripts/data_viz/dashbord_skript.py
+streamlit run src/data_viz/dashbord_skript.py
 ```
 
 **_NOTE:_**: this requires the UV environnement to be activated to do so run
