@@ -13,6 +13,8 @@ class DatabaseInserter(object):
         if not bulk_insert:
             session.commit()
         
+    def select_last_row(self, session, key = "UID"):
+        return session.query(self.database_object).order_by(getattr(self.database_object, key).desc()).first()
 
 class TableInserter(object):
     """
@@ -29,9 +31,9 @@ class TableInserter(object):
 
         self.db_insert = DatabaseInserter(self.db_object)
 
-    def process_data(data:pd.DataFrame):
+    def process_data(self, data:pd.DataFrame):
         """
-        To be overloaded
+        To be overloaded if needed
         """
         return data
 
@@ -41,19 +43,33 @@ class TableInserter(object):
         
         session.commit()
 
-    def insert_data(self, data:pd.dataFrame | dict, session):
+    def get_uid_from_table(self, session, key = "UID"):
+        data = self.db_insert.select_last_row(session=session)
+        return getattr(data, key)
+
+
+    def insert_data(self, data:pd.DataFrame | dict, session):
         
         if isinstance(data, dict):
-            data = pd.DataFrame(data.copy()) 
-        
+            if isinstance(data.get(list(data.keys())[0]), list):
+                data = pd.DataFrame(data.copy()) 
+            else:
+                data = pd.DataFrame(data.copy(), index = [0])
         
         if isinstance(data, pd.DataFrame):
-            if len(data.columns) < self.desired_variables:
-                raise ValueError("Not enough var found")
-
+            if len(data.columns) < len(self.desired_variables):
+                print(f"Not enough var found")
+                return -2
+            
             data = self.process_data(data)
 
-            self.insert_df_to_db(df = data, session = session)
+            try:
+                self.insert_df_to_db(df = data, session = session)
+                return 0
+            
+            except Exception as e:
+                print(f"Exception encounter while inserting data: {e}")
+                return -1
         else:
             
             raise ValueError("Type not supported")

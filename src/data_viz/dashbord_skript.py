@@ -1,70 +1,335 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from sqlalchemy import create_engine
 
-# Load the dataset
-file_path = "../../data/random_data_with_normalized_absences.csv"  # עדכן את הנתיב לקובץ
-df = pd.read_csv(file_path)
+# Function to load data from PostgreSQL
+def load_data(table_name):
+    db_url = "postgresql://postgres:BenBouiss@localhost:5455/D4G"
+    engine = create_engine(db_url)
+    query = f'SELECT * FROM "raw"."{table_name}"'
+    try:
+        df = pd.read_sql(query, engine)
+        return df
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return pd.DataFrame()
 
-# Sidebar filters
+# Sidebar filters for table selection and filtering
 st.sidebar.title("Filters")
-selected_company = st.sidebar.selectbox("Select Company", df['Company'].unique())
-selected_year = st.sidebar.selectbox("Select Year", df['Year'].unique())
-selected_age_range = st.sidebar.selectbox("Select Age Range", df['Age Range'].unique())
-selected_contract_type = st.sidebar.selectbox("Select Contract Type", df['Contract Type'].unique())
+table_options = [
+    "promotion_table", "absence_table", "Nationality_table", "Seniority_table",
+    "age_range_table", "exterior_worker_table", "handicap_table", "other_condition_table"
+]
+AVAILABLE_TABLES = [
+    "Absence", "Nationality"
+]
+NAME_TO_TABLENAME = {
+    "Absence": "absence_table", 
+    "Nationality": "Nationality_table"
+}
+selected_name = st.sidebar.selectbox("Select Table for Analysis", AVAILABLE_TABLES)
+selected_table = NAME_TO_TABLENAME.get(selected_name)
+# Load data from the selected table
+data = load_data(selected_table)
 
-# Filter the dataset based on sidebar inputs
-filtered_df = df[(df['Company'] == selected_company) &
-                 (df['Year'] == selected_year) &
-                 (df['Age Range'] == selected_age_range) &
-                 (df['Contract Type'] == selected_contract_type)]
+def process_event_nationality(df):
 
-# Graph 1: Percentage of Men and Women
-st.header("1. Percentage of Men and Women by Job Category")
-df_melted_gender = filtered_df.melt(id_vars='Category',
-                                    value_vars=['Men', 'Women'],
-                                    var_name='Gender',
-                                    value_name='Percentage')
-fig1 = px.bar(
-    df_melted_gender,
-    x='Category',
-    y='Percentage',
-    color='Gender',
-    text='Percentage',
-    barmode='group',
-    color_discrete_map={'Men': 'gray', 'Women': 'pink'},
-    labels={'Category': 'Job Category', 'Percentage': 'Percentage (%)'},
-    title='Percentage of Men and Women by Job Category'
-)
-fig1.update_traces(texttemplate='%{text:.0f}%', textposition='outside')
-fig1.update_layout(
-    yaxis=dict(title='Percentage (%)', range=[0, 100]),
-    xaxis=dict(title='Job Category'),
-    legend_title_text='Gender'
-)
-st.plotly_chart(fig1)
+    # Group by nationality and gender, then sum the values
+    number_col = "NBR_EMPLOYEE"
+    nationality_gender_totals = df.groupby(["NATIONALITY", "GENDER"])[number_col].sum().reset_index()
 
-# Graph 2: Normalized Absences
-st.header("2. Normalized Absences per Person by Job Category and Gender")
-df_melted_absences = filtered_df.melt(id_vars='Category',
-                                      value_vars=['Normalized Men Absence', 'Normalized Women Absence'],
-                                      var_name='Gender',
-                                      value_name='Normalized Absences (Hours)')
-fig2 = px.bar(
-    df_melted_absences,
-    x='Category',
-    y='Normalized Absences (Hours)',
-    color='Gender',
-    text='Normalized Absences (Hours)',
-    barmode='group',
-    color_discrete_map={'Normalized Men Absence': 'gray', 'Normalized Women Absence': 'pink'},
-    labels={'Category': 'Job Category', 'Normalized Absences (Hours)': 'Absences per Person (Normalized)'},
-    title='Normalized Absences per Person by Job Category and Gender'
-)
-fig2.update_traces(texttemplate='%{text:.1f}', textposition='outside')
-fig2.update_layout(
-    yaxis=dict(title='Absences per Person (Normalized)'),
-    xaxis=dict(title='Job Category'),
-    legend_title_text='Gender'
-)
-st.plotly_chart(fig2)
+    # Create a grouped bar chart to compare genders
+    fig_nationality_gender = px.bar(
+        nationality_gender_totals,
+        x="NATIONALITY",
+        y=number_col,
+        color="GENDER",
+        barmode="group",
+        title="Total Employees by Nationality and Gender",
+        labels={number_col: "Number of Employees", "NATIONALITY": "Nationality", "GENDER": "Gender"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_nationality_gender)
+
+    # Group by year and nationality, then sum the values
+    yearly_nationality_trend = df.groupby(["YEAR", "NATIONALITY"])["NBR_EMPLOYEE"].sum().reset_index()
+
+    # Create a line chart to show the trend over years
+    fig_yearly_nationality = px.line(
+        yearly_nationality_trend,
+        x="YEAR",
+        y=number_col,
+        color="NATIONALITY",
+        title="Yearly Trend of Employees by Nationality",
+        labels={number_col: "Number of Employees", "YEAR": "Year", "NATIONALITY": "Nationality"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_yearly_nationality)
+
+
+def process_event_absence(df):
+        # Group by nationality and gender, then sum the values
+    number_col = "ABSENCE_HOURS"
+    nationality_gender_totals = df.groupby(["JOB_TYPE", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a grouped bar chart to compare genders
+    fig_nationality_gender = px.bar(
+        nationality_gender_totals,
+        x="JOB_TYPE",
+        y=number_col,
+        color="GENDER",
+        barmode="group",
+        title="Total Employees by Nationality and Gender",
+        labels={number_col: "Number of Employees", "JOB_TYPE": "JOB_TYPE", "GENDER": "Gender"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_nationality_gender)
+
+    # Group by year and nationality, then sum the values
+    yearly_absence_trend = df.groupby(["YEAR", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a line chart to show the trend over years
+    fig_yearly_nationality = px.line(
+        yearly_absence_trend,
+        x="YEAR",
+        y=number_col,
+        color="GENDER",
+        title="Yearly Trend of Employees by Nationality",
+        labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
+    )
+    
+    # Display the chart
+    st.plotly_chart(fig_yearly_nationality)
+
+    # fig_yearly_per_job_nationality = px.line(
+    #     yearly_absence_trend,
+    #     x="YEAR",
+    #     y=number_col,
+    #     color="GENDER",
+    #     title="Yearly Trend of Employees by Nationality",
+    #     labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
+    # )
+    # st.plotly_chart(fig_yearly_per_job_nationality)
+
+# Check if data is loaded
+if not data.empty:
+   # Filters for Nationality_table
+    if selected_table == "Nationality_table": 
+    # Sidebar filters
+        number_col = "NBR_EMPLOYEE"
+        selected_company = st.sidebar.multiselect(
+            "Select Company",
+            options=data["ENTERPRISE"].unique(),
+            default=data["ENTERPRISE"].unique()
+        )
+
+        selected_gender = st.sidebar.multiselect(
+            "Select Gender",
+            options=data["GENDER"].unique(),
+            default=data["GENDER"].unique()
+        )
+
+        selected_contract_type = st.sidebar.multiselect(
+            "Select Contract Type",
+            options=data["CONTRACT_TYPE"].unique(),
+            default=data["CONTRACT_TYPE"].unique()
+        )
+
+        selected_year = st.sidebar.multiselect(
+            "Select Year",
+            options=data["YEAR"].unique(),
+            default=data["YEAR"].unique()
+        )
+
+        selected_nationality = st.sidebar.multiselect(
+            "Select Nationality",
+            options=data["NATIONALITY"].unique(),
+            default=data["NATIONALITY"].unique()
+        )
+
+        # Apply filters
+        filtered_data = data[
+            (data["ENTERPRISE"].isin(selected_company)) &
+            (data["GENDER"].isin(selected_gender)) &
+            (data["CONTRACT_TYPE"].isin(selected_contract_type)) &
+            (data["NATIONALITY"].isin(selected_nationality)) &
+            (data["YEAR"].isin(selected_year))
+        ]
+        process_event_nationality(df=filtered_data)
+    # Filters for absence_table
+    elif selected_table == "absence_table":
+         number_col = "ABSENCE_HOURS"
+         selected_company = st.sidebar.multiselect(
+             "Select Company",
+             options=data["ENTERPRISE"].unique(),
+             default=data["ENTERPRISE"].unique()
+         )
+         selected_gender = st.sidebar.multiselect(
+             "Select Gender",
+             options=data["GENDER"].unique(),
+             default=data["GENDER"].unique()
+         )
+         selected_absence_type = st.sidebar.multiselect(
+             "Select Absence Type",
+             options=data["ABSENCE_INFO"].unique(),
+             default=data["ABSENCE_INFO"].unique()
+         )
+         selected_year = st.sidebar.multiselect(
+             "Select Year",
+             options=data["YEAR"].unique(),
+             default=data["YEAR"].unique()
+         )
+         
+         # Apply filters
+         filtered_data = data[
+             (data["ENTERPRISE"].isin(selected_company)) &
+             (data["GENDER"].isin(selected_gender)) &
+             (data["ABSENCE_INFO"].isin(selected_absence_type)) &
+             (data["YEAR"].isin(selected_year))
+         ]
+         process_event_absence(filtered_data)
+    else:
+        st.error(f"No data available for {selected_table}.")
+ 
+    # Check if filtered data is empty
+    if filtered_data.empty:
+        st.warning("No data available for the selected filters.")
+
+else:
+    st.error("No data available for the selected table.")
+
+
+
+# Display available columns to debug
+    st.write("Available Columns in the Table:", data.columns)
+
+
+
+
+
+# Display the first few rows and columns of the table
+    if not data.empty:
+        st.write("Sample Data from Absence Table:", data.head())
+        st.write("Available Columns:", data.columns)
+    else:
+        st.error("No data available in the selected table.")
+
+
+
+
+
+    # # 4. Absence Analysis / ניתוח היעדרויות
+    # if "ABSENCES" in filtered_data.columns:
+    #     st.header("Absence Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
+    #     # Calculate average absences by category and gender
+    #     # חישוב ממוצע ההיעדרויות לפי קטגוריה ומגדר
+    #     absence_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["ABSENCES"].mean().reset_index()
+    #     # Create a bar chart to compare absences
+    #     # יצירת גרף עמודות להשוואת היעדרויות
+    #     fig_absences = px.bar(
+    #         absence_data,
+    #         x="JOB_TYPE",
+    #         y="ABSENCES",
+    #         color="GENDER",
+    #         barmode="group",
+    #         title="Average Absences by Gender and Category",
+    #         labels={"ABSENCES": "Average Absences", "JOB_TYPE": "Category"}
+    #     )
+    #     st.plotly_chart(fig_absences)
+
+# # 2. Promotion Analysis / ניתוח קידומים
+    # if "PROMOTIONS" in filtered_data.columns:
+    #     st.header("Promotion Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
+    #     # Calculate the number of promotions by category and gender
+    #     # חישוב כמות הקידומים לפי קטגוריה ומגדר
+    #     promotion_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["PROMOTIONS"].sum().reset_index()
+    #     # Create a bar chart to compare promotions
+    #     # יצירת גרף עמודות להשוואת קידומים
+    #     fig_promotions = px.bar(
+    #         promotion_data,
+    #         x="JOB_TYPE",
+    #         y="PROMOTIONS",
+    #         color="GENDER",
+    #         barmode="group",
+    #         title="Promotion Rates by Gender and Category",
+    #         labels={"PROMOTIONS": "Total Promotions", "JOB_TYPE": "Category"}
+    #     )
+    #     st.plotly_chart(fig_promotions)
+
+
+
+
+    # if "SALARY" in filtered_data.columns:
+    #     st.header("Salary Analysis")  # Dashboard section title / כותרת חלק הדאשבורד
+    #     # Calculate average salary by category and gender
+    #     # חישוב ממוצע השכר לפי קטגוריה ומגדר
+    #     salary_data = filtered_data.groupby(["JOB_TYPE", "GENDER"])["SALARY"].mean().reset_index()
+    #     # Create a bar chart to compare salaries
+    #     # יצירת גרף עמודות להשוואת שכר
+    #     fig_salary = px.bar(
+    #         salary_data,
+    #         x="JOB_TYPE",
+    #         y="SALARY",
+    #         color="GENDER",
+    #         barmode="group",
+    #         title="Average Salary by Gender and Category",
+    #         labels={"SALARY": "Average Salary", "JOB_TYPE": "Category"}
+    #     )
+    #     st.plotly_chart(fig_salary)
+
+
+
+
+    
+
+
+
+
+
+        # # 3. Representation in Higher Categories / ייצוג בקטגוריות גבוהות
+        # st.header("Representation in Higher Categories")  # Dashboard section title / כותרת חלק הדאשבורד
+        # # Calculate representation percentages for each category
+        # # חישוב אחוזי הייצוג בכל קטגוריה
+        # representation_data = filtered_data["JOB_TYPE"].value_counts(normalize=True).reset_index()
+        # representation_data.columns = ["JOB_TYPE", "PERCENTAGE"]
+        # # Create a pie chart for representation
+        # # יצירת גרף פאי לייצוג
+        # fig_representation = px.pie(
+        #     representation_data,
+        #     names="JOB_TYPE",
+        #     values="PERCENTAGE",
+        #     title="Representation by Category"
+        # )
+        # st.plotly_chart(fig_representation)
+
+
+
+
+
+
+
+#     # 5. Contract Type Analysis / ניתוח סוגי חוזה
+#     st.header("Contract Type Distribution")  # Dashboard section title / כותרת חלק הדאשבורד
+#     # Calculate the number of employees by contract type and gender
+#     # חישוב כמות העובדים לפי סוג חוזה ומגדר
+#     contract_data = filtered_data.groupby(["CONTRACT_TYPE", "GENDER"])["CONTRACT_TYPE"].count().reset_index(name="COUNT")
+#     # Create a bar chart for contract types
+#     # יצירת גרף עמודות לסוגי חוזה
+#     fig_contract = px.bar(
+#         contract_data,
+#         x="CONTRACT_TYPE",
+#         y="COUNT",
+#         color="GENDER",
+#         barmode="group",
+#         title="Contract Type Distribution by Gender",
+#         labels={"COUNT": "Number of Employees", "CONTRACT_TYPE": "Contract Type"}
+#     )
+#     st.plotly_chart(fig_contract)
+# else:
+#     # Display when no data matches the filters / תצוגה כאשר אין נתונים מתאימים
+#     st.warning(f"No data available for the selected table: {selected_table}")
+
