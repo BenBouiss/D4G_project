@@ -24,6 +24,37 @@ Running of the code(exemple):
 uv run scripts/main.py
 ```
 
+------------------------
+Launching the posgressql DB from the docker-compose.yaml
+
+
+```bash
+sudo docker compose up
+```
+
+Initialising the DB with the data present in the data folder
+
+```bash
+uv run scripts/db/init_database.py
+```
+
+------------------------
+
+Using the Streamlite dashbord
+
+```bash
+streamlit run scripts/data_viz/dashbord_skript.py
+```
+
+Note this requires the UV environnement to be activated to do so run
+
+
+```bash
+source activate .venv/bin/activate
+```
+
+
+
 
 ------------------------
 
