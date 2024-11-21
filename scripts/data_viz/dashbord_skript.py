@@ -21,16 +21,106 @@ table_options = [
     "promotion_table", "absence_table", "Nationality_table", "Seniority_table",
     "age_range_table", "exterior_worker_table", "handicap_table", "other_condition_table"
 ]
-selected_table = st.sidebar.selectbox("Select Table for Analysis", table_options)
-
+AVAILABLE_TABLES = [
+    "Absence", "Nationality"
+]
+NAME_TO_TABLENAME = {
+    "Absence": "absence_table", 
+    "Nationality": "Nationality_table"
+}
+selected_name = st.sidebar.selectbox("Select Table for Analysis", AVAILABLE_TABLES)
+selected_table = NAME_TO_TABLENAME.get(selected_name)
 # Load data from the selected table
 data = load_data(selected_table)
+
+def process_event_nationality(df):
+
+    # Group by nationality and gender, then sum the values
+    number_col = "NBR_EMPLOYEE"
+    nationality_gender_totals = df.groupby(["NATIONALITY", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a grouped bar chart to compare genders
+    fig_nationality_gender = px.bar(
+        nationality_gender_totals,
+        x="NATIONALITY",
+        y=number_col,
+        color="GENDER",
+        barmode="group",
+        title="Total Employees by Nationality and Gender",
+        labels={number_col: "Number of Employees", "NATIONALITY": "Nationality", "GENDER": "Gender"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_nationality_gender)
+
+    # Group by year and nationality, then sum the values
+    yearly_nationality_trend = df.groupby(["YEAR", "NATIONALITY"])["NBR_EMPLOYEE"].sum().reset_index()
+
+    # Create a line chart to show the trend over years
+    fig_yearly_nationality = px.line(
+        yearly_nationality_trend,
+        x="YEAR",
+        y=number_col,
+        color="NATIONALITY",
+        title="Yearly Trend of Employees by Nationality",
+        labels={number_col: "Number of Employees", "YEAR": "Year", "NATIONALITY": "Nationality"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_yearly_nationality)
+
+
+def process_event_absence(df):
+        # Group by nationality and gender, then sum the values
+    number_col = "ABSENCE_HOURS"
+    nationality_gender_totals = df.groupby(["JOB_TYPE", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a grouped bar chart to compare genders
+    fig_nationality_gender = px.bar(
+        nationality_gender_totals,
+        x="JOB_TYPE",
+        y=number_col,
+        color="GENDER",
+        barmode="group",
+        title="Total Employees by Nationality and Gender",
+        labels={number_col: "Number of Employees", "JOB_TYPE": "JOB_TYPE", "GENDER": "Gender"}
+    )
+
+    # Display the chart
+    st.plotly_chart(fig_nationality_gender)
+
+    # Group by year and nationality, then sum the values
+    yearly_absence_trend = df.groupby(["YEAR", "GENDER"])[number_col].sum().reset_index()
+
+    # Create a line chart to show the trend over years
+    fig_yearly_nationality = px.line(
+        yearly_absence_trend,
+        x="YEAR",
+        y=number_col,
+        color="GENDER",
+        title="Yearly Trend of Employees by Nationality",
+        labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
+    )
+    
+    # Display the chart
+    st.plotly_chart(fig_yearly_nationality)
+
+    # fig_yearly_per_job_nationality = px.line(
+    #     yearly_absence_trend,
+    #     x="YEAR",
+    #     y=number_col,
+    #     color="GENDER",
+    #     title="Yearly Trend of Employees by Nationality",
+    #     labels={number_col: "Number of Employees", "YEAR": "Year", "JOB_TYPE": "JOB_TYPE"}
+    # )
+    # st.plotly_chart(fig_yearly_per_job_nationality)
 
 # Check if data is loaded
 if not data.empty:
    # Filters for Nationality_table
     if selected_table == "Nationality_table": 
     # Sidebar filters
+        number_col = "NBR_EMPLOYEE"
         selected_company = st.sidebar.multiselect(
             "Select Company",
             options=data["ENTERPRISE"].unique(),
@@ -69,8 +159,10 @@ if not data.empty:
             (data["NATIONALITY"].isin(selected_nationality)) &
             (data["YEAR"].isin(selected_year))
         ]
+        process_event_nationality(df=filtered_data)
     # Filters for absence_table
     elif selected_table == "absence_table":
+         number_col = "ABSENCE_HOURS"
          selected_company = st.sidebar.multiselect(
              "Select Company",
              options=data["ENTERPRISE"].unique(),
@@ -99,49 +191,14 @@ if not data.empty:
              (data["ABSENCE_INFO"].isin(selected_absence_type)) &
              (data["YEAR"].isin(selected_year))
          ]
+         process_event_absence(filtered_data)
     else:
         st.error(f"No data available for {selected_table}.")
  
     # Check if filtered data is empty
     if filtered_data.empty:
         st.warning("No data available for the selected filters.")
-    else:
-        # Ensure VALUE column exists
-        if "VALUE" in filtered_data.columns:
-            # Group by nationality and gender, then sum the values
-            nationality_gender_totals = filtered_data.groupby(["NATIONALITY", "GENDER"])["VALUE"].sum().reset_index()
 
-            # Create a grouped bar chart to compare genders
-            fig_nationality_gender = px.bar(
-                nationality_gender_totals,
-                x="NATIONALITY",
-                y="VALUE",
-                color="GENDER",
-                barmode="group",
-                title="Total Employees by Nationality and Gender",
-                labels={"VALUE": "Number of Employees", "NATIONALITY": "Nationality", "GENDER": "Gender"}
-            )
-
-            # Display the chart
-            st.plotly_chart(fig_nationality_gender)
-
-            # Group by year and nationality, then sum the values
-            yearly_nationality_trend = filtered_data.groupby(["YEAR", "NATIONALITY"])["VALUE"].sum().reset_index()
-
-            # Create a line chart to show the trend over years
-            fig_yearly_nationality = px.line(
-                yearly_nationality_trend,
-                x="YEAR",
-                y="VALUE",
-                color="NATIONALITY",
-                title="Yearly Trend of Employees by Nationality",
-                labels={"VALUE": "Number of Employees", "YEAR": "Year", "NATIONALITY": "Nationality"}
-            )
-
-            # Display the chart
-            st.plotly_chart(fig_yearly_nationality)
-        else:
-            st.warning("The 'VALUE' column is not available in the selected table.")
 else:
     st.error("No data available for the selected table.")
 
