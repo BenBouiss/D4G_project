@@ -88,17 +88,17 @@ With Username and password both = "admin"
 Project structure
 
 ```md
-data:
+data
 └── Folder containing csv used by src.db and pdf files to be used by src.data_extractor
 
-src:
+src
 ├── data_extractor:
 │   └── Include scripts to extract tables from a given pdf file
 │     
-├── data_viz:
+├── data_viz
 │   └── Frontend scripts utilizing streamlit to display database information to the user
 │ 
-└── db:
+└── db
     └── Contains script to initialize the database and add informations to it
 ```
 
